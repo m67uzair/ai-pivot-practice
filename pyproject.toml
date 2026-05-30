@@ -1,0 +1,14 @@
+[project]
+name = "test-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "google-genai>=2.7.0",
+    "groq>=1.4.0",
+    "httpx>=0.28.1",
+    "openai>=2.38.0",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.1",
+]
