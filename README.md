@@ -10,7 +10,7 @@ This is a `uv`-managed monorepo: one shared virtual environment, multiple self-c
 |---------|--------------|-------|
 | [`pokemon-cli`](./pokemon-cli) | Fetches the PokéAPI, parses the response into typed Pydantic models, prints it. | Python · httpx · Pydantic |
 | [`chat-completion-script`](./chat-completion-script) | Sends one prompt to Gemini, Groq (Llama 3.3), and OpenRouter and prints the responses side-by-side for comparison. | Python · google-genai · groq · openai |
-| [`structured-outputs`](./structured-outputs) | Asks an LLM to return JSON matching a Pydantic schema and parses it into typed models, via both the Responses and Chat Completions APIs. | Python · openai · Pydantic |
+| [`structured-outputs`](./structured-outputs) | Asks an LLM to return JSON matching a Pydantic schema and parses it into typed models, three ways: the Responses API, the Chat Completions API, and JSON mode. | Python · openai · Pydantic |
 
 ## Setup
 
