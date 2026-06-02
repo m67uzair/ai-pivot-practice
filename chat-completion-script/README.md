@@ -1,3 +1,9 @@
+<!-- artifact
+emoji: 💬
+tasks: p1-w1-t3
+stack: Python, google-genai, groq, openai
+-->
+
 # Chat Completion Script
 
 Sends the same prompt to three different LLM providers and prints their responses side-by-side for comparison.

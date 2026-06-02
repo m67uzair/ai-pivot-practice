@@ -1,3 +1,9 @@
+<!-- artifact
+emoji: 🧱
+tasks: p1-w2-t2
+stack: Python, openai, groq, Pydantic
+-->
+
 # Structured Outputs
 
 Asks an LLM to return a JSON object that conforms to a Pydantic schema, then turns the response into typed model instances — no manual JSON wrangling (except in JSON mode, where you parse it yourself).
