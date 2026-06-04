@@ -1,0 +1,8 @@
+{
+    // Disable the Python linter extensions for this workspace.
+    "flake8.enabled": false,
+    "pylint.enabled": false,
+    "mypy-type-checker.enabled": false,
+    // Silence Pylance's own type/diagnostic squiggles.
+    "python.analysis.typeCheckingMode": "off"
+}
