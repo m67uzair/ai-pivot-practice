@@ -1,8 +1,15 @@
 import httpx
 from google import genai
+from google.genai import errors as genai_errors
 from google.genai import types
 
 from config import settings
+
+
+QUESTION = (
+    "What's the weather and temperature like in New York and London? "
+    "Respond with one sentence for each city."
+)
 
 
 # Explicit caching has a minimum size (~2,048 tokens for gemini-2.5-flash), so
@@ -128,30 +135,15 @@ weather_tool = types.Tool(
 )
 
 
-def main():
-    client = genai.Client(api_key=settings.gemini_api_key)
-    model = "gemini-2.5-flash"
+def run_tool_loop(client, model, contents, config, label):
+    """Drive the manual function-calling loop until the model returns text.
 
-    # IMPLICIT caching: no caches.create, no storage fee, works on the free tier.
-    # The stable prefix (system instruction + tools) lives in the per-call config
-    # and is IDENTICAL on every call below, so Gemini can transparently reuse it.
-    # We just observe the hit via usage_metadata.cached_content_token_count.
-    config = types.GenerateContentConfig(
-        system_instruction=SYSTEM_INSTRUCTION,
-        tools=[weather_tool],
-        automatic_function_calling=types.AutomaticFunctionCallingConfig(
-            disable=True
-        ),
-    )
-
-    # The volatile suffix: only the new user message (a bare string is fine; the
-    # SDK wraps it into a user Content for us).
-    contents = [
-        "What's the weather and temperature like in New York and London? "
-        "Respond with one sentence for each city."
-    ]
-
+    Shared by both caching strategies; only the `config` differs. Prints each
+    turn's token usage so the cache behaviour is visible, and returns the final
+    answer text.
+    """
     turn = 0
+    response = None
     while True:
         turn += 1
         response = client.models.generate_content(
@@ -161,12 +153,9 @@ def main():
         )
         contents.append(response.candidates[0].content)
 
-        # cached_content_token_count is how many prompt tokens were served from
-        # cache. Expect ~0 on turn 1 (nothing cached yet) and a hit afterwards,
-        # since the system-instruction + tools prefix repeats unchanged.
         um = response.usage_metadata
         print(
-            f"[turn {turn}] prompt={um.prompt_token_count} "
+            f"[{label} turn {turn}] prompt={um.prompt_token_count} "
             f"cached={um.cached_content_token_count or 0} "
             f"output={um.candidates_token_count}"
         )
@@ -185,7 +174,85 @@ def main():
             )
         contents.append(types.Content(role="user", parts=tool_parts))
 
-    print("\n" + response.text)
+    return response.text
+
+
+def run_implicit(client, model):
+    """IMPLICIT caching: no setup, no storage fee, works on the free tier.
+
+    The stable prefix (system instruction + tools) lives in the per-call config
+    and is identical on every call, so Gemini reuses it transparently. Expect
+    cached=0 on turn 1 (cold) and a hit on turn 2.
+    """
+    print("=== IMPLICIT caching (automatic, free tier, best-effort) ===")
+    config = types.GenerateContentConfig(
+        system_instruction=SYSTEM_INSTRUCTION,
+        tools=[weather_tool],
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(
+            disable=True
+        ),
+    )
+    answer = run_tool_loop(client, model, [QUESTION], config, "implicit")
+    print("\n" + answer)
+
+
+def run_explicit(client, model):
+    """EXPLICIT caching: create a server-side cache and point calls at it.
+
+    The discount is guaranteed (so cached>0 even on turn 1), but the cache is
+    billed storage for its TTL. Requires a billing-enabled project AND a prefix
+    of >=2,048 tokens for gemini-2.5-flash — on the free tier caches.create
+    raises 429 RESOURCE_EXHAUSTED.
+    """
+    print("\n=== EXPLICIT caching (caches.create; needs billing + >=2048 tok) ===")
+
+    # The stable prefix moves OUT of the per-call config and INTO the cache.
+    cache = client.caches.create(
+        model=model,
+        config=types.CreateCachedContentConfig(
+            display_name="weather-assistant",
+            system_instruction=SYSTEM_INSTRUCTION,
+            tools=[weather_tool],
+            ttl="300s",  # storage is billed for this whole duration
+        ),
+    )
+    print(
+        f"[explicit] created {cache.name} "
+        f"prefix_tokens={cache.usage_metadata.total_token_count}"
+    )
+
+    # Per-call config just POINTS at the cache. system_instruction and tools are
+    # deliberately absent here — they live in the cache, and passing both errors.
+    config = types.GenerateContentConfig(
+        cached_content=cache.name,
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(
+            disable=True
+        ),
+    )
+    try:
+        answer = run_tool_loop(client, model, [QUESTION], config, "explicit")
+        print("\n" + answer)
+    finally:
+        # Always delete so storage billing stops before the TTL runs out.
+        client.caches.delete(name=cache.name)
+        print(f"[explicit] deleted {cache.name}")
+
+
+def main():
+    client = genai.Client(api_key=settings.gemini_api_key)
+    model = "gemini-2.5-flash"
+
+    run_implicit(client, model)
+
+    try:
+        run_explicit(client, model)
+    except genai_errors.APIError as e:
+        # Expected on the free tier (429) or if the prefix is under the minimum.
+        print(
+            "\n[explicit] skipped — explicit caching needs a billing-enabled "
+            "project and a >=2,048-token prefix."
+        )
+        print(f"           ({e})")
 
 
 if __name__ == "__main__":
