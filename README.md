@@ -14,6 +14,7 @@ This is a `uv`-managed monorepo: one shared virtual environment, multiple self-c
 | [`instructor`](./instructor) | Gets schema-validated LLM output via the `instructor` library — pass a Pydantic model as `response_model` and get a typed instance back. | Python · instructor · Pydantic |
 | [`tool_calling`](./tool_calling) | Gives an LLM a `get_weather` tool and runs the multi-turn loop: the model calls the tool, the script executes it against Open-Meteo, and the result is fed back for a final answer. | Python · groq · httpx · Pydantic |
 | [`prompt-caching`](./prompt-caching) | Manual Gemini tool calling plus implicit prompt caching — reuses the system-instruction + tools prefix across turns and prints the cache hit. | Python · google-genai · httpx |
+| [`fastapi-chat-streaming-endpoint`](./fastapi-chat-streaming-endpoint) | A FastAPI SSE endpoint that streams an LLM response token-by-token via Groq + `AsyncGroq`. | Python · fastapi · groq |
 
 ## Setup
 
