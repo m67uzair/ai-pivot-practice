@@ -15,6 +15,7 @@ This is a `uv`-managed monorepo: one shared virtual environment, multiple self-c
 | [`tool_calling`](./tool_calling) | Gives an LLM a `get_weather` tool and runs the multi-turn loop: the model calls the tool, the script executes it against Open-Meteo, and the result is fed back for a final answer. | Python · groq · httpx · Pydantic |
 | [`prompt-caching`](./prompt-caching) | Manual Gemini tool calling plus implicit prompt caching — reuses the system-instruction + tools prefix across turns and prints the cache hit. | Python · google-genai · httpx |
 | [`fastapi-chat-streaming-endpoint`](./fastapi-chat-streaming-endpoint) | A FastAPI SSE endpoint that streams an LLM response token-by-token via Groq + `AsyncGroq`. | Python · fastapi · groq |
+| [`testing-llm-calls`](./testing-llm-calls) | A runnable cheat-sheet for testing LLM code — pytest, pytest-mock, and respx examples covering chat, async, streaming, tool calls, and structured output. | Python · pytest · pytest-mock · respx |
 
 ## Setup
 
