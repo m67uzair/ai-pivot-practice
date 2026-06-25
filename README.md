@@ -16,6 +16,7 @@ This is a `uv`-managed monorepo: one shared virtual environment, multiple self-c
 | [`prompt-caching`](./prompt-caching) | Manual Gemini tool calling plus implicit prompt caching — reuses the system-instruction + tools prefix across turns and prints the cache hit. | Python · google-genai · httpx |
 | [`fastapi-chat-streaming-endpoint`](./fastapi-chat-streaming-endpoint) | A FastAPI SSE endpoint that streams an LLM response token-by-token via Groq + `AsyncGroq`. | Python · fastapi · groq |
 | [`testing-llm-calls`](./testing-llm-calls) | A runnable cheat-sheet for testing LLM code — pytest, pytest-mock, and respx examples covering chat, async, streaming, tool calls, and structured output. | Python · pytest · pytest-mock · respx |
+| [`litellm-tryout`](./litellm-tryout) | One LiteLLM interface over Gemini/Groq/OpenRouter with automatic fallbacks (mock-tested), plus Instructor layered on the Router. | Python · litellm · instructor |
 
 ## Setup
 
