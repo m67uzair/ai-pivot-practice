@@ -17,6 +17,7 @@ This is a `uv`-managed monorepo: one shared virtual environment, multiple self-c
 | [`fastapi-chat-streaming-endpoint`](./fastapi-chat-streaming-endpoint) | A FastAPI SSE endpoint that streams an LLM response token-by-token via Groq + `AsyncGroq`. | Python · fastapi · groq |
 | [`testing-llm-calls`](./testing-llm-calls) | A runnable cheat-sheet for testing LLM code — pytest, pytest-mock, and respx examples covering chat, async, streaming, tool calls, and structured output. | Python · pytest · pytest-mock · respx |
 | [`litellm-tryout`](./litellm-tryout) | One LiteLLM interface over Gemini/Groq/OpenRouter with automatic fallbacks (mock-tested), plus Instructor layered on the Router. | Python · litellm · instructor |
+| [`pr-review-bot`](./pr-review-bot) | A FastAPI service that auto-reviews GitHub PRs: verified webhook → fetch diff → LLM produces a structured, Pydantic-validated review (→ posts back, stores, deploys — in progress). | Python · FastAPI · LiteLLM · instructor · Pydantic |
 
 ## Setup
 

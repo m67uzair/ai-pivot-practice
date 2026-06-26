@@ -1,0 +1,44 @@
+<!-- artifact
+emoji: 🤖
+tasks: p1-w1-t1, p1-w1-t2
+stack: Python, FastAPI, LiteLLM, instructor, Pydantic
+-->
+
+# PR Review Bot
+
+A FastAPI service that auto-reviews GitHub pull requests with an LLM. A webhook receives PR events, the bot fetches the diff, an LLM produces a **structured, Pydantic-validated** review (issues + severity + suggested fix), and posts it back to the PR. Built incrementally across the week — this README grows as each task ships.
+
+## Roadmap
+
+- [x] **t1** — GitHub webhook → FastAPI receives PR diff (HMAC-verified, diff fetched)
+- [x] **t2** — Structured review output (issues, severity, suggested fix), Pydantic-validated
+- [ ] **t3** — Post review comment back via the GitHub API
+- [ ] **t4** — Store reviews (SQLAlchemy + Alembic + SQLite)
+- [ ] **t5** — Dockerfile (multi-stage) + GitHub Actions CI
+- [ ] **t6** — Deploy to Railway
+- [ ] **t7** — 90-sec demo video
+
+## How it works (so far)
+
+1. **Receive + verify** (`main.py`) — `POST /webhook` reads the raw body, verifies GitHub's `X-Hub-Signature-256` HMAC against `WEBHOOK_SECRET` (constant-time), answers the `ping`, and filters to `pull_request` events (`opened`/`synchronize`/`reopened`).
+2. **Ack fast, work in the background** — it returns `200` to GitHub immediately and runs the slow part in a `BackgroundTask`; the blocking LLM call is offloaded with `asyncio.to_thread` so it never freezes the event loop.
+3. **Fetch the diff** — `GET`s the PR's API URL with `Accept: application/vnd.github.diff` to get the raw unified diff.
+4. **Review it** (`reviewer.py`) — LiteLLM makes the call, instructor (JSON mode) validates the result into a `Review` model, re-asking the model if it doesn't fit the schema.
+
+## Setup
+
+Add to the `.env` at the repo root:
+
+```
+GITHUB_TOKEN=...      # PAT with Pull requests read/write
+WEBHOOK_SECRET=...     # must match the secret set on the GitHub webhook
+GROQ_API_KEY=...
+```
+
+## Run
+
+```bash
+uv run fastapi dev pr-review-bot/main.py
+```
+
+Then expose it with a tunnel (smee.io / ngrok) and register a webhook on a test repo (Payload URL `…/webhook`, content type `application/json`, secret = `WEBHOOK_SECRET`, events = Pull requests). GitHub's webhook **Recent Deliveries** tab is the best debugging view.
