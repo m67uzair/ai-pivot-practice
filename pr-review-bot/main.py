@@ -7,7 +7,7 @@ from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
 
 from config import settings
 from models import PullRequestEvent
-from reviewer import review_diff
+from reviewer import format_review, review_diff
 
 app = FastAPI()
 
@@ -47,17 +47,26 @@ async def fetch_pr_diff(pr_api_url: str) -> str:
         return resp.text          # .text, not .json() — the body IS the diff
 
 
+async def post_comment(repo: str, number: int, body: str) -> None:
+    # PRs are issues, so a PR comment goes through the issues endpoint.
+    url = f"https://api.github.com/repos/{repo}/issues/{number}/comments"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {settings.github_token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.post(url, headers=headers, json={"body": body})
+        resp.raise_for_status()
+
+
 async def process_pr(pr_api_url: str, number: int, repo: str) -> None:
-    """The slow work: fetch the diff and review it. Runs AFTER we've already
-    replied 200 to GitHub, so the webhook never waits on the LLM."""
+    # Runs after we've already 200'd GitHub, so the webhook never waits on this.
     diff = await fetch_pr_diff(pr_api_url)
-    # review_diff is a blocking, multi-second LLM call — offload it to a thread
-    # so it doesn't freeze the event loop (Demo 2 lesson).
+    # review_diff blocks for seconds — offload it so it can't freeze the loop.
     review = await asyncio.to_thread(review_diff, diff)
-    print(f"PR #{number} in {repo}: {len(review.issues)} issue(s)")
-    for issue in review.issues:
-        print(f"  [{issue.severity.value}] {issue.title}")
-    # task 3 will post `review` back to the PR as a comment here.
+    await post_comment(repo, number, format_review(review))
+    print(f"PR #{number} in {repo}: posted review, {len(review.issues)} issue(s)")
 
 
 @app.post("/webhook")

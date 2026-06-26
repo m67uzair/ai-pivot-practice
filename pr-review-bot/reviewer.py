@@ -9,7 +9,10 @@ import instructor
 import litellm
 
 from config import settings
-from models import Review
+from models import Review, Severity
+
+_EMOJI = {Severity.critical: "🔴", Severity.high: "🟠",
+          Severity.medium: "🟡", Severity.low: "🔵"}
 
 MODEL = "groq/openai/gpt-oss-120b"
 
@@ -44,3 +47,18 @@ def review_diff(diff: str) -> Review:
         api_key=settings.groq_api_key,
         max_retries=2,        # instructor re-asks the model if validation fails
     )
+
+
+def format_review(review: Review) -> str:
+    if not review.issues:
+        return f"## 🤖 Automated review\n\n{review.summary}\n\n✅ No issues found."
+
+    parts = [f"## 🤖 Automated review\n\n{review.summary}"]
+    for i in review.issues:
+        where = f"`{i.file}`" + (f" · {i.location}" if i.location else "")
+        parts.append(
+            f"### {_EMOJI[i.severity]} {i.severity.value.upper()} — {i.title}\n"
+            f"{where}\n\n{i.explanation}\n\n"
+            f"**Suggested fix:**\n\n{i.suggested_fix}"
+        )
+    return "\n\n---\n\n".join(parts)

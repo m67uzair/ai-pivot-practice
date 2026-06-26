@@ -1,6 +1,6 @@
 <!-- artifact
 emoji: 🤖
-tasks: p1-w4-t1, p1-w4-t2
+tasks: p1-w4-t1, p1-w4-t2, p1-w4-t3
 stack: Python, FastAPI, LiteLLM, instructor, Pydantic
 -->
 
@@ -12,7 +12,7 @@ A FastAPI service that auto-reviews GitHub pull requests with an LLM. A webhook 
 
 - [x] **t1** — GitHub webhook → FastAPI receives PR diff (HMAC-verified, diff fetched)
 - [x] **t2** — Structured review output (issues, severity, suggested fix), Pydantic-validated
-- [ ] **t3** — Post review comment back via the GitHub API
+- [x] **t3** — Post review comment back via the GitHub API
 - [ ] **t4** — Store reviews (SQLAlchemy + Alembic + SQLite)
 - [ ] **t5** — Dockerfile (multi-stage) + GitHub Actions CI
 - [ ] **t6** — Deploy to Railway
@@ -24,6 +24,7 @@ A FastAPI service that auto-reviews GitHub pull requests with an LLM. A webhook 
 2. **Ack fast, work in the background** — it returns `200` to GitHub immediately and runs the slow part in a `BackgroundTask`; the blocking LLM call is offloaded with `asyncio.to_thread` so it never freezes the event loop.
 3. **Fetch the diff** — `GET`s the PR's API URL with `Accept: application/vnd.github.diff` to get the raw unified diff.
 4. **Review it** (`reviewer.py`) — LiteLLM makes the call, instructor (JSON mode) validates the result into a `Review` model, re-asking the model if it doesn't fit the schema.
+5. **Post it back** — `format_review` renders the `Review` as markdown and it's posted to the PR via the GitHub issues-comments endpoint.
 
 ## Setup
 
