@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     github_token: str
     webhook_secret: str
+    groq_api_key: str
     debug: bool = False
 
 

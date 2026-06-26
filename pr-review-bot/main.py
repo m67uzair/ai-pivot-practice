@@ -1,11 +1,13 @@
+import asyncio
 import hashlib
 import hmac
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
 
 from config import settings
 from models import PullRequestEvent
+from reviewer import review_diff
 
 app = FastAPI()
 
@@ -45,8 +47,25 @@ async def fetch_pr_diff(pr_api_url: str) -> str:
         return resp.text          # .text, not .json() — the body IS the diff
 
 
+async def process_pr(pr_api_url: str, number: int, repo: str) -> None:
+    """The slow work: fetch the diff and review it. Runs AFTER we've already
+    replied 200 to GitHub, so the webhook never waits on the LLM."""
+    diff = await fetch_pr_diff(pr_api_url)
+    # review_diff is a blocking, multi-second LLM call — offload it to a thread
+    # so it doesn't freeze the event loop (Demo 2 lesson).
+    review = await asyncio.to_thread(review_diff, diff)
+    print(f"PR #{number} in {repo}: {len(review.issues)} issue(s)")
+    for issue in review.issues:
+        print(f"  [{issue.severity.value}] {issue.title}")
+    # task 3 will post `review` back to the PR as a comment here.
+
+
 @app.post("/webhook")
-async def handle_webhook(request: Request, x_github_event: str = Header(default=None)):
+async def handle_webhook(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    x_github_event: str = Header(default=None),
+):
     raw = await request.body()
     # Verify FIRST, on the exact bytes — before we trust or parse anything.
     verify_signature(raw, request.headers.get("x-hub-signature-256"))
@@ -61,8 +80,12 @@ async def handle_webhook(request: Request, x_github_event: str = Header(default=
     if event.action not in {"opened", "synchronize", "reopened"}:
         return {"ignored_action": event.action}
 
-    diff = await fetch_pr_diff(event.pull_request.url)
-    print(f"PR #{event.number} in {event.repository.full_name}: "
-          f"{len(diff)} chars of diff")
-
-    return {"ok": True, "pr": event.number, "diff_chars": len(diff)}
+    # Hand the slow fetch+review to the background and ACK GitHub immediately,
+    # well within its ~10s webhook timeout.
+    background_tasks.add_task(
+        process_pr,
+        event.pull_request.url,
+        event.number,
+        event.repository.full_name,
+    )
+    return {"ok": True, "pr": event.number, "queued": True}
