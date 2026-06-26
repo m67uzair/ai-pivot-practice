@@ -1,6 +1,6 @@
 <!-- artifact
 emoji: 🤖
-tasks: p1-w1-t1, p1-w1-t2
+tasks: p1-w4-t1, p1-w4-t2
 stack: Python, FastAPI, LiteLLM, instructor, Pydantic
 -->
 
