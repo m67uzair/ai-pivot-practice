@@ -6,6 +6,7 @@ import httpx
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
 
 from config import settings
+from db import save_review
 from models import PullRequestEvent
 from reviewer import format_review, review_diff
 
@@ -66,6 +67,7 @@ async def process_pr(pr_api_url: str, number: int, repo: str) -> None:
     # review_diff blocks for seconds — offload it so it can't freeze the loop.
     review = await asyncio.to_thread(review_diff, diff)
     await post_comment(repo, number, format_review(review))
+    await asyncio.to_thread(save_review, repo, number, review)   # blocking DB write
     print(f"PR #{number} in {repo}: posted review, {len(review.issues)} issue(s)")
 
 
