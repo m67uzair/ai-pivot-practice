@@ -31,4 +31,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 COPY pr-review-bot/ ./pr-review-bot/
 
 EXPOSE 8000
-CMD ["fastapi", "run", "pr-review-bot/main.py", "--host", "0.0.0.0"]
+# Apply migrations against whatever DATABASE_URL points at, then start the app.
+CMD ["sh", "-c", "alembic -c pr-review-bot/alembic.ini upgrade head && exec fastapi run pr-review-bot/main.py --host 0.0.0.0"]

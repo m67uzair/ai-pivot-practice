@@ -46,6 +46,8 @@ uv run alembic -c pr-review-bot/alembic.ini upgrade head
 
 Live on **Railway**. Railway builds the image from the `Dockerfile` on each push and runs the container. Secrets (`GITHUB_TOKEN`, `WEBHOOK_SECRET`, `GROQ_API_KEY`) are set as **Railway environment variables** — never baked into the image — and read at runtime by `pydantic-settings`. The container binds `0.0.0.0` so Railway's router can reach it.
 
+**Persistence:** the database is selected by `DATABASE_URL` (`db.py`) — a managed Railway **Postgres** service in production, SQLite locally when the var is unset. Same SQLAlchemy models + Alembic migrations run on either; only the URL changes. Migrations apply automatically on container start (the Dockerfile `CMD` runs `alembic upgrade head` before launching), so the schema is always current and reviews survive redeploys.
+
 ## Roadmap: making it usable by others
 
 Today it auto-reviews PRs on a repo where you've configured the webhook + a PAT. To open it up:

@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -13,7 +14,22 @@ from sqlalchemy.orm import (
 from models import Review
 
 _DB_PATH = Path(__file__).parent / "reviews.db"
-engine = create_engine(f"sqlite:///{_DB_PATH}")
+
+
+def _database_url() -> str:
+    # Railway (and most hosts) inject DATABASE_URL; local dev falls back to SQLite.
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        return f"sqlite:///{_DB_PATH}"
+    # SQLAlchemy 2.0 drives Postgres via psycopg (v3) — rewrite the scheme so the
+    # `postgresql://…` Railway hands us uses that driver.
+    for prefix in ("postgresql://", "postgres://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+
+
+engine = create_engine(_database_url())
 SessionLocal = sessionmaker(bind=engine)   # call SessionLocal() to get a session
 
 
