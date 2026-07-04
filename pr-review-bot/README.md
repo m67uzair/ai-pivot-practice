@@ -1,6 +1,6 @@
 <!-- artifact
 emoji: 🤖
-tasks: p1-w4-t1, p1-w4-t2, p1-w4-t3, p1-w4-t4, p1-w4-t5, p1-w4-t6
+tasks: p1-w4-t1, p1-w4-t2, p1-w4-t3, p1-w4-t4, p1-w4-t5, p1-w4-t6, p1-w4-t7
 stack: Python, FastAPI, LiteLLM, instructor, Pydantic
 -->
 
@@ -21,7 +21,7 @@ A FastAPI service that auto-reviews GitHub pull requests with an LLM. A webhook 
 - [x] **t4** — Store reviews (SQLAlchemy + Alembic + SQLite)
 - [x] **t5** — Dockerfile (multi-stage) + GitHub Actions CI
 - [x] **t6** — Deploy to Railway
-- [ ] **t7** — 90-sec demo video
+- [x] **t7** — 90-sec demo video (Remotion project in [`demo/`](./demo); upload to YouTube/Loom + embed the link to finish)
 
 ## How it works (so far)
 
