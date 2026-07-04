@@ -10,7 +10,7 @@ import {
 } from 'remotion';
 
 export const FPS = 30;
-export const DURATION_IN_FRAMES = 1200; // 40s
+export const DURATION_IN_FRAMES = 1365; // ~45s
 
 const C = {
   bg: '#0d1117',
@@ -98,11 +98,11 @@ const PRReview: React.FC = () => {
 };
 
 // A still shot with a gentle zoom, showing the top of the page
-const ZoomShot: React.FC<{file: string; caption: React.ReactNode}> = ({file, caption}) => {
+const ZoomShot: React.FC<{file: string; caption: React.ReactNode; bg?: string}> = ({file, caption, bg = '#ffffff'}) => {
   const frame = useCurrentFrame();
   const scale = interpolate(frame, [0, 165], [1, 1.06], {extrapolateRight: 'clamp'});
   return (
-    <AbsoluteFill style={{backgroundColor: '#ffffff', overflow: 'hidden'}}>
+    <AbsoluteFill style={{backgroundColor: bg, overflow: 'hidden'}}>
       <Img
         src={staticFile(file)}
         style={{position: 'absolute', top: 0, left: 0, width: 1920, transformOrigin: 'top center', transform: `scale(${scale})`}}
@@ -164,7 +164,10 @@ export const Demo: React.FC = () => {
       <Sequence from={855} durationInFrames={165}>
         <ZoomShot file="shots/live_docs.png" caption="Live on Railway — FastAPI /docs" />
       </Sequence>
-      <Sequence from={1020} durationInFrames={180}>
+      <Sequence from={1020} durationInFrames={165}>
+        <ZoomShot file="shots/railway.png" bg="#0d1117" caption="Deployed & Online on Railway" />
+      </Sequence>
+      <Sequence from={1185} durationInFrames={180}>
         <Outro />
       </Sequence>
     </AbsoluteFill>
