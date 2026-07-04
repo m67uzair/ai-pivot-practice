@@ -1,6 +1,6 @@
 <!-- artifact
 emoji: 🤖
-tasks: p1-w4-t1, p1-w4-t2, p1-w4-t3, p1-w4-t4
+tasks: p1-w4-t1, p1-w4-t2, p1-w4-t3, p1-w4-t4, p1-w4-t6
 stack: Python, FastAPI, LiteLLM, instructor, Pydantic
 -->
 
@@ -14,8 +14,8 @@ A FastAPI service that auto-reviews GitHub pull requests with an LLM. A webhook 
 - [x] **t2** — Structured review output (issues, severity, suggested fix), Pydantic-validated
 - [x] **t3** — Post review comment back via the GitHub API
 - [x] **t4** — Store reviews (SQLAlchemy + Alembic + SQLite)
-- [ ] **t5** — Dockerfile (multi-stage) + GitHub Actions CI
-- [ ] **t6** — Deploy to Railway
+- [~] **t5** — Dockerfile (multi-stage) ✓ · GitHub Actions CI *(pending)*
+- [x] **t6** — Deploy to Railway
 - [ ] **t7** — 90-sec demo video
 
 ## How it works (so far)
@@ -41,6 +41,17 @@ After changing the models in `db.py`, generate a new migration:
 uv run alembic -c pr-review-bot/alembic.ini revision --autogenerate -m "..."
 uv run alembic -c pr-review-bot/alembic.ini upgrade head
 ```
+
+## Deploy
+
+Live on **Railway**. Railway builds the image from the `Dockerfile` on each push and runs the container. Secrets (`GITHUB_TOKEN`, `WEBHOOK_SECRET`, `GROQ_API_KEY`) are set as **Railway environment variables** — never baked into the image — and read at runtime by `pydantic-settings`. The container binds `0.0.0.0` so Railway's router can reach it.
+
+## Roadmap: making it usable by others
+
+Today it auto-reviews PRs on a repo where you've configured the webhook + a PAT. To open it up:
+
+- **`@reviewBot` mention trigger** — handle `issue_comment` events so anyone can comment `@reviewBot` on a PR to trigger a review on demand (reuses the whole pipeline).
+- **Installable GitHub App** — give the bot its own identity (`reviewbot[bot]`) and one-click install on any repo, authenticating with per-installation tokens (App JWT → installation access token) instead of a personal PAT.
 
 ## Setup
 
