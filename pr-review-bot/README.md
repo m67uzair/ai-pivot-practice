@@ -1,6 +1,6 @@
 <!-- artifact
 emoji: 🤖
-tasks: p1-w4-t1, p1-w4-t2, p1-w4-t3, p1-w4-t4, p1-w4-t6
+tasks: p1-w4-t1, p1-w4-t2, p1-w4-t3, p1-w4-t4, p1-w4-t5, p1-w4-t6
 stack: Python, FastAPI, LiteLLM, instructor, Pydantic
 -->
 
@@ -8,13 +8,18 @@ stack: Python, FastAPI, LiteLLM, instructor, Pydantic
 
 A FastAPI service that auto-reviews GitHub pull requests with an LLM. A webhook receives PR events, the bot fetches the diff, an LLM produces a **structured, Pydantic-validated** review (issues + severity + suggested fix), and posts it back to the PR. Built incrementally across the week — this README grows as each task ships.
 
+[![CI](https://github.com/m67uzair/ai-pivot-practice/actions/workflows/ci.yml/badge.svg)](https://github.com/m67uzair/ai-pivot-practice/actions/workflows/ci.yml)
+
+- ⚡ **Reviews a ~500-line diff in ~3 seconds** (measured; Groq `gpt-oss-120b`), returning severity-tagged findings with suggested fixes.
+- 🌐 **Live:** https://pr-review-bot-production-36f2.up.railway.app · **Source:** [`pr-review-bot/`](https://github.com/m67uzair/ai-pivot-practice/tree/main/pr-review-bot)
+
 ## Roadmap
 
 - [x] **t1** — GitHub webhook → FastAPI receives PR diff (HMAC-verified, diff fetched)
 - [x] **t2** — Structured review output (issues, severity, suggested fix), Pydantic-validated
 - [x] **t3** — Post review comment back via the GitHub API
 - [x] **t4** — Store reviews (SQLAlchemy + Alembic + SQLite)
-- [~] **t5** — Dockerfile (multi-stage) ✓ · GitHub Actions CI *(pending)*
+- [x] **t5** — Dockerfile (multi-stage) + GitHub Actions CI
 - [x] **t6** — Deploy to Railway
 - [ ] **t7** — 90-sec demo video
 
