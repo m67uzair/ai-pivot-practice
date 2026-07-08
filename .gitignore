@@ -16,4 +16,4 @@ wheels/
 #env file
 *.env
 .env
-**/.env
+**/.env.DS_Store
