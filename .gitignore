@@ -16,4 +16,8 @@ wheels/
 #env file
 *.env
 .env
-**/.env.DS_Store
+**/.env
+
+# macOS
+.DS_Store
+**/.DS_Store
