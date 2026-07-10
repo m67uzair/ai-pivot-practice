@@ -21,3 +21,10 @@ wheels/
 # macOS
 .DS_Store
 **/.DS_Store
+
+# RAG ingest: internal Confluence content + local vector store never leave the machine
+rag-ingest/docs/
+rag-ingest/chroma/
+
+# Shared Python 3.12 venv for the ML tasks (torch has no 3.14 wheels)
+.ml-venv/
